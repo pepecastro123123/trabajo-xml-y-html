@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="html" encoding="UTF-8" indent="yes"/>
+
+  <xsl:template match="/">
+    <html lang="es">
+      <head>
+        <meta charset="UTF-8"/>
+        <title>Catálogo · Mercadillo Sostenible</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com"/>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;family=DM+Sans:wght@300;400;600&amp;display=swap"/>
+        <style>
+          /* ─── VARIABLES Y RESET ─── */
+          *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+          :root {
+            --verde:    #2d6a4f;
+            --verde-cl: #d8f3dc;
+            --dorado:   #c8963e;
+            --crema:    #fefae0;
+            --gris:     #3d3d3d;
+            --r:        16px;
+          }
+          body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--crema);
+            padding: 2rem 1rem;
+            color: var(--gris);
+          }
+          header { text-align: center; margin-bottom: 3rem; }
+          header h1 { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--verde); }
+
+          /* ─── GRID DE PRODUCTOS ─── */
+          .contenedor-catalogo {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+          }
+
+          /* ─── TARJETA ─── */
+          .tarjeta {
+            background: #fff;
+            border-radius: var(--r);
+            box-shadow: 0 8px 32px rgba(0,0,0,.12);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+          }
+          .tarjeta:hover { transform: translateY(-5px); }
+
+          .tarjeta-franja { height: 8px; background: var(--verde); }
+          .tarjeta-franja.intercambio { background: var(--dorado); }
+
+          .tarjeta-head { padding: 1.4rem 1.4rem .6rem; display: flex; justify-content: space-between; align-items: flex-start; gap: .8rem; }
+          .tarjeta-head h1 { font-family: 'Playfair Display', serif; font-size: 1.25rem; color: var(--gris); }
+
+          .badge { 
+            white-space: nowrap; background: var(--verde-cl); color: var(--verde); 
+            border-radius: 2rem; padding: .25rem .8rem; font-size: .7rem; font-weight: 700; text-transform: uppercase; 
+          }
+          .badge.int { background: #fff3cd; color: #856404; }
+
+          .tarjeta-body { padding: .4rem 1.4rem 1rem; flex: 1; }
+          .tarjeta-body .desc { font-size: .92rem; color: #666; line-height: 1.6; min-height: 60px; }
+          
+          .meta { margin-top: .9rem; display: flex; flex-direction: column; gap: .2rem; font-size: .8rem; color: #999; }
+          .meta span { display: flex; align-items: center; gap: .35rem; }
+
+          .tarjeta-foot { border-top: 1px solid #eee; padding: 1.2rem 1.4rem; display: flex; align-items: center; justify-content: space-between; }
+          .precio { font-size: 1.5rem; font-weight: 700; color: var(--verde); font-family: 'Playfair Display', serif; }
+          .precio.gratis { color: var(--dorado); font-size: 1.1rem; }
+
+          .qr-box { display: flex; flex-direction: column; align-items: center; gap: .4rem; }
+          .qr-box img { width: 80px; height: 80px; border: 1.5px solid #e0e0e0; border-radius: 8px; padding: 4px; }
+          .qr-label { font-size: .6rem; font-family: monospace; color: #bbb; }
+        </style>
+      </head>
+      <body>
+        <header>
+          <p>🌿 <xsl:value-of select="inventario/@evento"/></p>
+          <h1>Catálogo de Artículos</h1>
+          <p><xsl:value-of select="inventario/@lugar"/> · <xsl:value-of select="inventario/@fecha"/></p>
+        </header>
+
+        <div class="contenedor-catalogo">
+          <xsl:for-each select="inventario/objeto">
+            <article class="tarjeta">
+              <div class="tarjeta-franja">
+                <xsl:if test="categoria = 'Intercambio'">
+                  <xsl:attribute name="class">tarjeta-franja intercambio</xsl:attribute>
+                </xsl:if>
+              </div>
+
+              <div class="tarjeta-head">
+                <h1><xsl:value-of select="nombre"/></h1>
+                <span class="badge">
+                  <xsl:if test="categoria = 'Intercambio'">
+                    <xsl:attribute name="class">badge int</xsl:attribute>
+                  </xsl:if>
+                  <xsl:value-of select="subcategoria"/>
+                </span>
+              </div>
+
+              <div class="tarjeta-body">
+                <p class="desc"><xsl:value-of select="descripcion"/></p>
+                <div class="meta">
+                  <span>👤 <xsl:value-of select="propietario"/></span>
+                  <span>📦 Estado: <xsl:value-of select="estado"/></span>
+                  <span>🔖 Ref: <strong><xsl:value-of select="id"/></strong></span>
+                </div>
+              </div>
+
+              <div class="tarjeta-foot">
+                <xsl:choose>
+                  <xsl:when test="precio = 0">
+                    <span class="precio gratis">🔄 Intercambio</span>
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <span class="precio">
+                      <xsl:value-of select="precio"/>&#160;<xsl:value-of select="moneda"/>
+                    </span>
+                  </xsl:otherwise>
+                </xsl:choose>
+
+                <div class="qr-box">
+                  <img alt="QR {id}">
+                    <xsl:attribute name="src">
+                      <xsl:value-of select="concat('https://api.qrserver.com/v1/create-qr-code/?size=150x150&amp;data=http://192.168.218.1:5500/plantilla_tarjeta.html?id=', id)"/>
+                    </xsl:attribute>
+                  </img>
+                  <span class="qr-label"><xsl:value-of select="id"/></span>
+                </div>
+              </div>
+            </article>
+          </xsl:for-each>
+        </div>
+      </body>
+    </html>
+  </xsl:template>
+</xsl:stylesheet>
